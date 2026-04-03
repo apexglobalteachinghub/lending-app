@@ -167,33 +167,35 @@ npm start
 
 ### 2.5 Deploy (example: Vercel)
 
-This monorepo has **`vercel.json` at the repository root** so Vercel can build **without** changing the dashboard, as long as the project’s **Root Directory** is the **repository root** (default when you import the whole repo):
+Vercel detects **Next.js** from the **`package.json` that contains `"next"`**. In this monorepo that file lives under **`lending-web/`**, not the repository root (the root `package.json` is only for Supabase CLI tooling).
 
-- **`installCommand`:** `npm install --prefix lending-web`
-- **`buildCommand`:** `npm run build --prefix lending-web`
-- **`framework`:** `nextjs`
+**You must set the Vercel Root Directory to `lending-web`.** If Root Directory stays at the repo root, the build fails with *“No Next.js version detected”*.
 
 1. Push the repo to GitHub/GitLab.
-2. **Import the repository** in [Vercel](https://vercel.com/new). Leave **Root Directory** empty or **`.`** (repo root) so the root `vercel.json` is used.
-3. **Environment variables** (required — without them the app can misbehave or error at runtime):  
-   **Settings → Environment Variables** → add for *Production* (and Preview if you use it):
+2. **Import the repository** in [Vercel](https://vercel.com/new).
+3. **Before or after import — set Root Directory:**  
+   **Project → Settings → General → Root Directory** → **Edit** → enter **`lending-web`** → Save.  
+   (When importing, Vercel may show **“Configure Project”** — expand **Root Directory** and set it to `lending-web`.)
+4. **Clear overrides** (if you added them earlier): **Settings → General** — remove custom **Install Command** / **Build Command** / **Output Directory** so Vercel uses the defaults for Next.js (`npm install`, `npm run build`).
+5. **Environment variables** — **Settings → Environment Variables** (Production + Preview as needed):
 
    - `NEXT_PUBLIC_SUPABASE_URL` = your Supabase project URL  
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = your Supabase anon key  
 
    Redeploy after saving env vars.
 
-4. Deploy. Your site should respond on `/` and `/login`.
+6. **Deploy** — open `/` and `/login` on your `.vercel.app` URL.
 
-**Alternative:** Set **Root Directory** to `lending-web` in the Vercel project. Then Vercel runs `npm install` / `npm run build` *inside* that folder (the root `vercel.json` in the parent is **not** used). Clear any custom Install/Build commands in the dashboard so defaults apply.
+7. Use that URL for the mobile app’s **`EXPO_PUBLIC_WEB_APP_URL`** (support link).
 
-5. Note your public URL (e.g. `https://your-app.vercel.app`) — use it for the mobile app’s **`EXPO_PUBLIC_WEB_APP_URL`** (support link).
+The file **`lending-web/vercel.json`** sets `"framework": "nextjs"` for clarity; the important part is still **Root Directory = `lending-web`**.
 
 ### 2.6 Fix: Vercel NOT_FOUND or 404 after deploy
 
 | Cause | What to do |
 |--------|----------------|
-| **Wrong project root** | If the repo root has no working Next app, Vercel may deploy an empty or wrong output. Use **repo root** + root `vercel.json`, **or** set **Root Directory** to `lending-web` and use default Next.js build (see §2.5). |
+| **Wrong project root** | Set **Root Directory** to **`lending-web`** (see §2.5). The repo root has no `next` dependency. |
+| **“No Next.js version detected”** | Same fix: **Settings → General → Root Directory** = **`lending-web`**. Remove custom Install/Build commands that point at the wrong folder. |
 | **Missing env vars** | Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, then **Redeploy**. |
 | **Old deployment** | **Deployments** tab → open latest → confirm **Building** succeeded. Fix build errors first. |
 | **Wrong URL** | Open the URL Vercel shows for that deployment (project `.vercel.app` domain). |
@@ -311,7 +313,8 @@ Opening the **support page on the web** uses `expo-linking` + `EXPO_PUBLIC_WEB_A
 | No push token | Physical device, permissions granted, EAS `projectId` if required |
 | `open //./pipe/docker_engine: The system cannot find the file specified` | Docker Desktop is not running or not installed. See [Docker on Windows](#docker-on-windows-supabase-local) below. |
 | `docker client must be run with elevated privileges` | Run **Docker Desktop** as Administrator once, or ensure your Windows user can use Docker; see below. |
-| Vercel: **NOT_FOUND** / site empty after deploy | See **§2.6** — project root, `vercel.json`, Supabase env vars on Vercel, redeploy. |
+| Vercel: **NOT_FOUND** / site empty after deploy | See **§2.6** — Root Directory **`lending-web`**, Supabase env vars, redeploy. |
+| Vercel: **No Next.js version detected** | **Root Directory** must be **`lending-web`** (see §2.5). |
 
 ### Docker on Windows (Supabase local)
 
