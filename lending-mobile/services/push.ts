@@ -4,17 +4,25 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+let notificationHandlerReady = false;
+
+function ensureNotificationHandler() {
+  if (notificationHandlerReady) return;
+  notificationHandlerReady = true;
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function registerPushForUser(userId: string): Promise<void> {
+  ensureNotificationHandler();
+
   if (!Device.isDevice) {
     return;
   }

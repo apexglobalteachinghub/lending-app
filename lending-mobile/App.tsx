@@ -3,8 +3,10 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useColorScheme } from "react-native";
 import { useCallback, useEffect } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainTabs } from "./navigation/MainTabs";
 import type { RootStackParamList } from "./navigation/types";
 import { LoginScreen } from "./screens/LoginScreen";
@@ -59,16 +61,48 @@ export default function App() {
   );
 
   useEffect(() => {
-    let mounted = true;
+    let active = true;
+
+    const finishBoot = async () => {
+      try {
+        await SplashScreen.hideAsync();
+      } catch {
+        /* already hidden or unavailable */
+      }
+      if (active) setInitialized(true);
+    };
+
     (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      const s = data.session;
-      setSession(s);
-      if (s?.user) await syncProfile(s.user.id);
-      else setProfile(null);
-      setInitialized(true);
-      await SplashScreen.hideAsync();
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!active) return;
+        if (error) {
+          console.warn("getSession:", error.message);
+          setSession(null);
+          setProfile(null);
+        } else {
+          const s = data.session;
+          setSession(s);
+          if (s?.user) {
+            try {
+              await syncProfile(s.user.id);
+            } catch (e) {
+              console.warn("syncProfile:", e);
+              setProfile(null);
+            }
+          } else {
+            setProfile(null);
+          }
+        }
+      } catch (e) {
+        console.warn("Auth bootstrap:", e);
+        if (active) {
+          setSession(null);
+          setProfile(null);
+        }
+      } finally {
+        await finishBoot();
+      }
     })();
 
     const {
@@ -80,7 +114,7 @@ export default function App() {
     });
 
     return () => {
-      mounted = false;
+      active = false;
       subscription.unsubscribe();
     };
   }, [setInitialized, setProfile, setSession, syncProfile]);
@@ -103,18 +137,22 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
-      <Stack.Navigator
-        key={authed ? "main" : "login"}
-        screenOptions={{ headerShown: false }}
-      >
-        {authed ? (
-          <Stack.Screen name="Main" component={MainTabs} />
-        ) : (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <NavigationContainer theme={navigationTheme}>
+          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+          <Stack.Navigator
+            key={authed ? "main" : "login"}
+            screenOptions={{ headerShown: false }}
+          >
+            {authed ? (
+              <Stack.Screen name="Main" component={MainTabs} />
+            ) : (
+              <Stack.Screen name="Login" component={LoginScreen} />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }

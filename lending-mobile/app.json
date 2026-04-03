@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "lending-mobile",
-    "slug": "lending-mobile",
+    "slug": "lending-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "lendflow",
@@ -37,6 +37,12 @@
           "color": "#059669"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "49c4f9c7-4068-4302-958d-2df9e488dc74"
+      }
+    },
+    "owner": "silicon-cores-organization"
   }
 }
