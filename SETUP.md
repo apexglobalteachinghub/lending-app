@@ -380,6 +380,29 @@ git push -u origin main
 
 If GitHub asks you to log in, use a [Personal Access Token](https://github.com/settings/tokens) as the password when using HTTPS, or set up [SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh).
 
+#### `error: src refspec main does not match any`
+
+Git has **no commit on `main` yet**. Commit first, then push:
+
+```powershell
+git add .
+git status
+git commit -m "Initial commit: LendFlow monorepo"
+git push -u origin main
+```
+
+#### `embedded git repository` / empty `lending-web` on GitHub
+
+If `lending-web` or `lending-mobile` still have their own **`.git`** folder, the parent repo may store them as **submodules** (folders look empty on GitHub). Remove nested `.git`, re-add, and commit:
+
+```powershell
+git rm -r --cached lending-web lending-mobile
+Remove-Item -Recurse -Force .\lending-web\.git, .\lending-mobile\.git
+git add lending-web lending-mobile
+git commit -m "Track app folders as normal files (not submodules)"
+git push
+```
+
 ### 5. After the repo is on GitHub
 
 - **Vercel / Netlify:** point the project at the repo and set the **root directory** to `lending-web` if the host asks for a subdirectory.
