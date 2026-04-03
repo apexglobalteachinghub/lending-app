@@ -1,0 +1,43 @@
+# Secrets — never commit real keys
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Keep example env files tracked
+!.env.example
+!**/.env.example
+!.env.local.example
+!**/.env.local.example
+
+# Dependencies
+node_modules/
+
+# Next.js (lending-web)
+lending-web/.next/
+lending-web/out/
+lending-web/.vercel
+
+# Expo / React Native (lending-mobile)
+lending-mobile/.expo/
+lending-mobile/dist/
+lending-mobile/web-build/
+
+# Logs & debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (optional — remove these lines if you want to share editor settings)
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Supabase CLI cache
+supabase/.temp/
